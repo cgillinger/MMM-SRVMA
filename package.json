@@ -1,0 +1,31 @@
+{
+  "name": "MMM-SRVMA",
+  "version": "2.0.0",
+  "description": "Swedish VMA (Important Public Announcements) module for MagicMirror² using Sveriges Radio's VMA API",
+  "main": "MMM-SRVMA.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrillgi/MMM-SRVMA.git"
+  },
+  "keywords": [
+    "magicmirror",
+    "smart mirror",
+    "VMA",
+    "alerts",
+    "sweden",
+    "sveriges radio",
+    "public announcements"
+  ],
+  "author": "Christian Gillinger",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chrillgi/MMM-SRVMA/issues"
+  },
+  "homepage": "https://github.com/chrillgi/MMM-SRVMA#readme",
+  "dependencies": {
+    "axios": "^1.6.2"
+  }
+}

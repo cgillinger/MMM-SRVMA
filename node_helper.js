@@ -1,30 +1,46 @@
-/* MagicMirror² Node Helper: MMM-SRVMA
- * Version: 2.0.1
- * Fixed syntax and error handling
- */
-
 const NodeHelper = require("node_helper");
 const axios = require("axios");
 
 module.exports = NodeHelper.create({
     start: function() {
         console.log("Starting node helper for MMM-SRVMA");
-        // Initialize dummy data template
+        // Initialize dummy data template with both languages
         this.dummyData = {
             Severe: {
                 severity: "Severe",
                 urgency: "Immediate",
-                description: "TESTALARM: Allvarlig industriolycka"
+                sv: {
+                    description: "TESTALARM: Allvarlig industriolycka",
+                    event: "Viktigt meddelande till allmänheten (VMA)"
+                },
+                en: {
+                    description: "TEST ALERT: Serious industrial accident",
+                    event: "Important Public Announcement"
+                }
             },
             Moderate: {
                 severity: "Moderate",
                 urgency: "Expected",
-                description: "TESTALARM: Vädervarning nivå 2"
+                sv: {
+                    description: "TESTALARM: Vädervarning nivå 2",
+                    event: "Viktigt meddelande till allmänheten (VMA)"
+                },
+                en: {
+                    description: "TEST ALERT: Weather warning level 2",
+                    event: "Important Public Announcement"
+                }
             },
             Minor: {
                 severity: "Minor",
                 urgency: "Future",
-                description: "TESTALARM: Trafikstörningar väntas"
+                sv: {
+                    description: "TESTALARM: Trafikstörningar väntas",
+                    event: "Viktigt meddelande till allmänheten (VMA)"
+                },
+                en: {
+                    description: "TEST ALERT: Traffic disruptions expected",
+                    event: "Important Public Announcement"
+                }
             }
         };
     },
@@ -50,26 +66,45 @@ module.exports = NodeHelper.create({
                 console.error("Invalid severity level specified:", severity);
                 return null;
             }
-            
-            return {
+
+            // Create base alert
+            const baseAlert = {
                 identifier: `TEST-${Date.now()}`,
                 sender: "Sveriges Radio Test API",
                 sent: new Date().toISOString(),
                 status: "Test",
                 msgType: "Alert",
                 scope: "Public",
-                info: [{
-                    language: "sv-SE",
-                    category: "Safety",
-                    event: "VMA Test",
-                    urgency: config.dummyUrgency || dummyTemplate.urgency,
-                    severity: dummyTemplate.severity,
-                    certainty: "Observed",
-                    senderName: "Sveriges Radio Test",
-                    description: dummyTemplate.description,
-                    web: "https://sverigesradio.se/vma"
-                }]
+                info: []
             };
+
+            // Add Swedish info
+            baseAlert.info.push({
+                language: "sv-SE",
+                category: "Safety",
+                event: dummyTemplate.sv.event,
+                urgency: config.dummyUrgency || dummyTemplate.urgency,
+                severity: dummyTemplate.severity,
+                certainty: "Observed",
+                senderName: "Sveriges Radio Test",
+                description: dummyTemplate.sv.description,
+                web: "https://sverigesradio.se/vma"
+            });
+
+            // Add English info
+            baseAlert.info.push({
+                language: "en-US",
+                category: "Safety",
+                event: dummyTemplate.en.event,
+                urgency: config.dummyUrgency || dummyTemplate.urgency,
+                severity: dummyTemplate.severity,
+                certainty: "Observed",
+                senderName: "Swedish Radio Test",
+                description: dummyTemplate.en.description,
+                web: "https://sverigesradio.se/vma"
+            });
+
+            return baseAlert;
         } catch (error) {
             console.error("Error generating dummy alert:", error);
             return null;
@@ -98,7 +133,7 @@ module.exports = NodeHelper.create({
             }
 
             const response = await axios.get(`${apiUrl}?${params.toString()}`, {
-                timeout: 10000, // 10 second timeout
+                timeout: 10000,
                 headers: {
                     'Accept': 'application/json'
                 }
@@ -113,7 +148,6 @@ module.exports = NodeHelper.create({
             }
         } catch (error) {
             console.error("Error fetching VMA data:", error.message);
-            // Send empty array to prevent frontend from breaking
             this.sendSocketNotification("ALERTS_DATA", []);
         }
     }

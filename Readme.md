@@ -14,9 +14,9 @@ This module uses the VMA API service provided by Sveriges Radio AB. The VMA syst
 
 ### Description
 This module displays Swedish VMA (Important Public Announcements) on your MagicMirror. It shows different types of alerts with color-coding based on severity:
-- Red: Severe alerts (like the industrial accident alert shown in the screenshot)
-- Orange: Moderate alerts
-- Yellow: Minor alerts
+- Red: Severe alerts (like industrial accidents)
+- Orange: Moderate alerts (like severe weather warnings)
+- Yellow: Minor alerts (like traffic disruptions)
 
 ### Installation
 1. Navigate to your MagicMirror's modules folder:
@@ -26,7 +26,7 @@ cd ~/MagicMirror/modules
 
 2. Clone this repository:
 ```bash
-git clone https://github.com/cgillinger/SRVMA
+git clone https://github.com/cgillinger/MMM-SRVMA
 ```
 
 3. Install dependencies:
@@ -42,80 +42,114 @@ Add this to your `config/config.js` file:
     module: "MMM-SRVMA",
     position: "top_right",
     config: {
-        updateInterval: 60000, // Update every minute
-        alertAgeThreshold: 3600000, // Show alerts up to 1 hour old
-        maxHeight: "300px",
-        width: "400px",
+        // Basic settings
+        updateInterval: 60000,         // Update every minute
+        alertAgeThreshold: 3600000,    // Show alerts from the last hour (1 hour in ms)
+        width: "400px",               // Adjust width as needed
+        maxHeight: "300px",           // Adjust max height as needed
         showIcons: true,
         animateIn: true,
-        language: "sv" // Language setting (sv = Swedish, en = English)
+        preferredLanguage: "sv-SE",    // Language setting ("sv-SE" for Swedish, "en-US" for English)
+        showBothLanguages: false       // Set to true to show both Swedish and English when available
     }
 }
 ```
 
-### Language Options
-The module supports two languages:
-- `sv`: Swedish (Svenska) - Default
-- `en`: English
+### Language Settings
+The module supports dual-language display with these options:
+- `preferredLanguage`: 
+  - Use `"sv-SE"` for Swedish (default)
+  - Use `"en-US"` for English
+- `showBothLanguages`: 
+  - Set to `true` to display both languages when available
+  - Set to `false` to show only preferred language (default)
 
-To change the language, add or modify the `language` option in your configuration:
+Example for English with both languages shown:
 ```javascript
 config: {
-    language: "en" // For English
-    // or
-    language: "sv" // For Swedish (default)
+    preferredLanguage: "en-US",    // Show English as primary language
+    showBothLanguages: true        // Also show Swedish text when available
 }
 ```
 
-Language setting affects:
-- Alert descriptions
-- Time formats
-- Interface text
-- Status messages
+Example for Swedish only:
+```javascript
+config: {
+    preferredLanguage: "sv-SE",    // Show Swedish only
+    showBothLanguages: false       // Don't show English translations
+}
+```
 
-### Test Mode with Dummy Data
-To test the module without connecting to the actual API, you can use dummy data. Add these options to your configuration:
+### Test Mode
+To easily test the module's appearance and functionality, you can use the built-in test mode:
 
+1. Enable test mode in your config:
 ```javascript
 {
     module: "MMM-SRVMA",
     position: "top_right",
     config: {
-        // ... other options ...
-        useDummyData: true,
-        dummySeverity: "Severe", // Options: "Severe", "Moderate", "Minor"
-        dummyUrgency: "Immediate" // Options: "Immediate", "Expected", "Future"
+        useDummyData: true,        // Enable test mode
+        dummySeverity: "Severe",   // Choose severity level
+        dummyUrgency: "Immediate", // Choose urgency level
+        preferredLanguage: "en-US" // Test with English
     }
 }
 ```
 
-The dummy data will show a test alert with the specified severity and urgency. This is useful for:
-- Testing the module's appearance
-- Developing new features
-- Checking different alert styles
-- Testing without internet connection
+2. Available test options:
+- Severity levels:
+  - `"Severe"` - Red alert (highest)
+  - `"Moderate"` - Orange alert
+  - `"Minor"` - Yellow alert (lowest)
+- Urgency levels:
+  - `"Immediate"` - Requires immediate attention
+  - `"Expected"` - Expected in near future
+  - `"Future"` - Future concern
+
+3. Common test configurations:
+
+Test severe alert in English:
+```javascript
+config: {
+    useDummyData: true,
+    dummySeverity: "Severe",
+    preferredLanguage: "en-US"
+}
+```
+
+Test moderate alert in both languages:
+```javascript
+config: {
+    useDummyData: true,
+    dummySeverity: "Moderate",
+    preferredLanguage: "en-US",
+    showBothLanguages: true
+}
+```
 
 ### Configuration Options
-| Option | Description | Default |
-|--------|-------------|---------|
-| `updateInterval` | How often to check for new alerts (in milliseconds) | 60000 |
-| `alertAgeThreshold` | How old alerts can be before they're hidden (in milliseconds) | 3600000 |
-| `maxHeight` | Maximum height of the module | "300px" |
-| `width` | Width of the module | "400px" |
-| `showIcons` | Whether to show alert icons | true |
-| `animateIn` | Enable fade-in animation for new alerts | true |
-| `useDummyData` | Enable test mode with dummy data | false |
-| `dummySeverity` | Severity level for test alerts | "Severe" |
-| `dummyUrgency` | Urgency level for test alerts | "Immediate" |
-| `language` | Interface language (sv/en) | "sv" |
+| Option | Description | Default | Available Values |
+|--------|-------------|---------|-----------------|
+| `preferredLanguage` | Primary display language | "sv-SE" | "sv-SE", "en-US" |
+| `showBothLanguages` | Show both languages | false | true, false |
+| `useDummyData` | Enable test mode | false | true, false |
+| `dummySeverity` | Test alert severity | "Severe" | "Severe", "Moderate", "Minor" |
+| `dummyUrgency` | Test alert urgency | "Immediate" | "Immediate", "Expected", "Future" |
+| `updateInterval` | Update frequency (ms) | 60000 | any number |
+| `alertAgeThreshold` | Max alert age (ms) | 3600000 | any number |
+| `width` | Module width | "400px" | any valid CSS width |
+| `maxHeight` | Module max height | "300px" | any valid CSS height |
+| `showIcons` | Display alert icons | true | true, false |
+| `animateIn` | Enable animations | true | true, false |
 
 ## Svenska 🇸🇪
 
 ### Beskrivning
 Denna modul visar VMA (Viktigt Meddelande till Allmänheten) på din MagicMirror. Den använder Sveriges Radios VMA-API för att hämta och visa viktiga meddelanden. Varningar visas med färgkodning baserat på allvarlighetsgrad:
-- Röd: Allvarliga varningar
-- Orange: Måttliga varningar
-- Gul: Mindre allvarliga varningar
+- Röd: Allvarliga varningar (som industriolyckor)
+- Orange: Måttliga varningar (som vädervarningar)
+- Gul: Mindre allvarliga varningar (som trafikstörningar)
 
 ### Installation
 1. Navigera till din MagicMirror's modules-mapp:
@@ -134,64 +168,87 @@ cd MMM-SRVMA
 npm install
 ```
 
-### Språkalternativ
-Modulen stöder två språk:
-- `sv`: Svenska - Standard
-- `en`: Engelska
-
-För att ändra språk, lägg till eller ändra `language`-alternativet i din konfiguration:
-```javascript
-config: {
-    language: "en" // För Engelska
-    // eller
-    language: "sv" // För Svenska (standard)
-}
-```
-
-Språkinställningen påverkar:
-- Varningsbeskrivningar
-- Tidsformat
-- Gränssnittstext
-- Statusmeddelanden
-
-### Testläge med Dummy-Data
-För att testa modulen utan att ansluta till det faktiska API:et kan du använda dummy-data. Lägg till dessa alternativ i din konfiguration:
-
+### Grundkonfiguration
+Lägg till detta i din `config/config.js` fil:
 ```javascript
 {
     module: "MMM-SRVMA",
     position: "top_right",
     config: {
-        // ... andra alternativ ...
-        useDummyData: true,
-        dummySeverity: "Severe", // Alternativ: "Severe", "Moderate", "Minor"
-        dummyUrgency: "Immediate" // Alternativ: "Immediate", "Expected", "Future"
+        // Grundinställningar
+        updateInterval: 60000,         // Uppdatera varje minut
+        alertAgeThreshold: 3600000,    // Visa varningar från senaste timmen
+        width: "400px",               // Justera bredd efter behov
+        maxHeight: "300px",           // Justera maxhöjd efter behov
+        showIcons: true,              // Visa ikoner
+        animateIn: true,              // Aktivera animationer
+        preferredLanguage: "sv-SE",    // Språkinställning
+        showBothLanguages: false       // Visa båda språken
     }
 }
 ```
 
-Dummy-data kommer att visa ett testmeddelande med angiven allvarlighetsgrad och brådska. Detta är användbart för:
-- Testa modulens utseende
-- Utveckla nya funktioner
-- Kontrollera olika varningsstilar
-- Testa utan internetanslutning
+### Språkinställningar
+Modulen stöder visning på två språk med följande alternativ:
+- `preferredLanguage`: 
+  - Använd `"sv-SE"` för svenska (standard)
+  - Använd `"en-US"` för engelska
+- `showBothLanguages`: 
+  - Sätt till `true` för att visa både svenska och engelska
+  - Sätt till `false` för att bara visa valt språk (standard)
+
+Exempel för svenska med engelska översättningar:
+```javascript
+config: {
+    preferredLanguage: "sv-SE",    // Visa svenska som huvudspråk
+    showBothLanguages: true        // Visa även engelska översättningar
+}
+```
+
+### Testläge
+För att enkelt testa modulens utseende och funktionalitet kan du använda det inbyggda testläget:
+
+1. Aktivera testläge i din konfiguration:
+```javascript
+{
+    module: "MMM-SRVMA",
+    position: "top_right",
+    config: {
+        useDummyData: true,        // Aktivera testläge
+        dummySeverity: "Severe",   // Välj allvarlighetsgrad
+        dummyUrgency: "Immediate", // Välj prioritetsnivå
+        preferredLanguage: "sv-SE" // Testa på svenska
+    }
+}
+```
+
+2. Tillgängliga testalternativ:
+- Allvarlighetsgrader:
+  - `"Severe"` - Röd varning (högst)
+  - `"Moderate"` - Orange varning
+  - `"Minor"` - Gul varning (lägst)
+- Prioritetsnivåer:
+  - `"Immediate"` - Kräver omedelbar uppmärksamhet
+  - `"Expected"` - Förväntas inom kort
+  - `"Future"` - Framtida händelse
 
 ### Konfigurationsalternativ
-| Alternativ | Beskrivning | Standard |
-|------------|-------------|----------|
-| `updateInterval` | Hur ofta nya varningar ska hämtas (i millisekunder) | 60000 |
-| `alertAgeThreshold` | Hur gamla varningar kan vara innan de döljs (i millisekunder) | 3600000 |
-| `maxHeight` | Maxhöjd för modulen | "300px" |
-| `width` | Bredd på modulen | "400px" |
-| `showIcons` | Om ikoner ska visas | true |
-| `animateIn` | Aktivera fade-in animation för nya varningar | true |
-| `useDummyData` | Aktivera testläge med dummy-data | false |
-| `dummySeverity` | Allvarlighetsgrad för testvarningar | "Severe" |
-| `dummyUrgency` | Brådskande nivå för testvarningar | "Immediate" |
-| `language` | Gränssnittsspråk (sv/en) | "sv" |
+| Alternativ | Beskrivning | Standard | Tillgängliga värden |
+|------------|-------------|----------|-------------------|
+| `preferredLanguage` | Primärt visningsspråk | "sv-SE" | "sv-SE", "en-US" |
+| `showBothLanguages` | Visa båda språken | false | true, false |
+| `useDummyData` | Aktivera testläge | false | true, false |
+| `dummySeverity` | Testvarningens allvarlighetsgrad | "Severe" | "Severe", "Moderate", "Minor" |
+| `dummyUrgency` | Testvarningens prioritet | "Immediate" | "Immediate", "Expected", "Future" |
+| `updateInterval` | Uppdateringsfrekvens (ms) | 60000 | valfritt nummer |
+| `alertAgeThreshold` | Max ålder på varningar (ms) | 3600000 | valfritt nummer |
+| `width` | Modulbredd | "400px" | valfri CSS-bredd |
+| `maxHeight` | Modulens maxhöjd | "300px" | valfri CSS-höjd |
+| `showIcons` | Visa varningsikoner | true | true, false |
+| `animateIn` | Aktivera animationer | true | true, false |
 
 ## Support
-For support, please open an issue on GitHub.
+För support, vänligen öppna ett ärende på GitHub.
 
 ## Attribution and License
 - This module is created by Christian Gillinger under the MIT License

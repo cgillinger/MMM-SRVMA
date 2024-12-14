@@ -1,0 +1,88 @@
+/* MMM-SRVMA Enhanced Styles v2.1.0 - Border-based design */
+
+.mmm-srvma-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.alert-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 10px;
+}
+
+.alert {
+    display: flex;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: transparent;
+    border: 2px solid;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+/* Severity-based styling */
+.alert-severe {
+    border-color: #ff0000;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+.alert-moderate {
+    border-color: #ffa500;
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.3);
+}
+
+.alert-minor {
+    border-color: #ffff00;
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+}
+
+.alert-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.alert-description {
+    font-size: 1em;
+    line-height: 1.4;
+    margin: 8px 0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.alert-metadata {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-top: 5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Urgency indicators */
+.urgency-immediate {
+    animation: borderPulse 2s infinite;
+}
+
+@keyframes borderPulse {
+    0% { border-width: 2px; }
+    50% { border-width: 4px; }
+    100% { border-width: 2px; }
+}
+
+/* Optimizations for Raspberry Pi */
+@media screen and (max-width: 800px) {
+    .alert {
+        padding: 10px;
+    }
+    
+    .alert-title {
+        font-size: 1.1em;
+    }
+    
+    .alert-description {
+        font-size: 0.9em;
+    }
+}

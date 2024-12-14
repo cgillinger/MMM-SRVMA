@@ -8,7 +8,7 @@ A MagicMirror² module for displaying VMA (Viktigt Meddelande till Allmänheten 
 This module uses the VMA API service provided by Sveriges Radio AB. The VMA system is owned and operated by Sveriges Radio AB on behalf of Swedish authorities. For more information about the VMA service, visit:
 - [VMA API Documentation](https://vmaapi.sr.se/index.html)
 - [VMA API Release Notes](https://vmaapi.sr.se/releasenotes)
-- [Sveriges Radio VMA Information](https://sverigesradio.se/vma)
+- [Sveriges Radio VMA Information](https://sverigesradio.se/artikel/vma-viktigt-meddelande-till-allmanheten)
 
 ## English 🇬🇧
 

@@ -26,7 +26,7 @@ cd ~/MagicMirror/modules
 
 2. Clone this repository:
 ```bash
-git clone https://github.com/chrillgi/MMM-SRVMA
+git clone https://github.com/cgillinger/MMM-SRVMA
 ```
 
 3. Install dependencies:

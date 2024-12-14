@@ -46,10 +46,31 @@ Add this to your `config/config.js` file:
         maxHeight: "300px",
         width: "400px",
         showIcons: true,
-        animateIn: true
+        animateIn: true,
+        language: "sv" // Language setting (sv = Swedish, en = English)
     }
 }
 ```
+
+### Language Options
+The module supports two languages:
+- `sv`: Swedish (Svenska) - Default
+- `en`: English
+
+To change the language, add or modify the `language` option in your configuration:
+```javascript
+config: {
+    language: "en" // For English
+    // or
+    language: "sv" // For Swedish (default)
+}
+```
+
+Language setting affects:
+- Alert descriptions
+- Time formats
+- Interface text
+- Status messages
 
 ### Test Mode with Dummy Data
 To test the module without connecting to the actual API, you can use dummy data. Add these options to your configuration:
@@ -85,6 +106,7 @@ The dummy data will show a test alert with the specified severity and urgency. T
 | `useDummyData` | Enable test mode with dummy data | false |
 | `dummySeverity` | Severity level for test alerts | "Severe" |
 | `dummyUrgency` | Urgency level for test alerts | "Immediate" |
+| `language` | Interface language (sv/en) | "sv" |
 
 ## Svenska 🇸🇪
 
@@ -110,6 +132,26 @@ git clone https://github.com/chrillgi/MMM-SRVMA
 cd MMM-SRVMA
 npm install
 ```
+
+### Språkalternativ
+Modulen stöder två språk:
+- `sv`: Svenska - Standard
+- `en`: Engelska
+
+För att ändra språk, lägg till eller ändra `language`-alternativet i din konfiguration:
+```javascript
+config: {
+    language: "en" // För Engelska
+    // eller
+    language: "sv" // För Svenska (standard)
+}
+```
+
+Språkinställningen påverkar:
+- Varningsbeskrivningar
+- Tidsformat
+- Gränssnittstext
+- Statusmeddelanden
 
 ### Testläge med Dummy-Data
 För att testa modulen utan att ansluta till det faktiska API:et kan du använda dummy-data. Lägg till dessa alternativ i din konfiguration:
@@ -145,6 +187,7 @@ Dummy-data kommer att visa ett testmeddelande med angiven allvarlighetsgrad och 
 | `useDummyData` | Aktivera testläge med dummy-data | false |
 | `dummySeverity` | Allvarlighetsgrad för testvarningar | "Severe" |
 | `dummyUrgency` | Brådskande nivå för testvarningar | "Immediate" |
+| `language` | Gränssnittsspråk (sv/en) | "sv" |
 
 ## Support
 For support, please open an issue on GitHub.

@@ -1,10 +1,42 @@
-/* MMM-SRVMA Enhanced Styles v2.1.0 - Border-based design */
+/* MMM-SRVMA Enhanced Styles v2.1.2
+ * Updates:
+ * - Added loading state styles
+ * - Added error state styles
+ * - Added no-alerts state styles
+ * - Maintains existing border-based design
+ */
 
 .mmm-srvma-wrapper {
     width: 100%;
     max-width: 100%;
     overflow: hidden;
     position: relative;
+}
+
+/* Loading, Error, and No Alerts states */
+.loading,
+.error,
+.no-alerts {
+    text-align: center;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.loading {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+.error {
+    border-left: 3px solid #ff0000;
+    padding-left: 12px;
 }
 
 .alert-container {

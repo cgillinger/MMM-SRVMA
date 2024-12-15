@@ -49,9 +49,34 @@ Add this to your `config/config.js` file:
         maxHeight: "300px",           // Adjust max height as needed
         showIcons: true,
         animateIn: true,
+        geoCode: "12",                // Location filter (e.g., "12" for Stockholm County)
         preferredLanguage: "sv-SE",    // Language setting ("sv-SE" for Swedish, "en-US" for English)
         showBothLanguages: false       // Set to true to show both Swedish and English when available
     }
+}
+```
+
+### Location Filtering
+The module supports location-based filtering using Swedish GeoCodes:
+- `geoCode`: 
+  - Two digits for counties (län), e.g., "12" for Stockholm County
+  - Four digits for municipalities (kommuner), e.g., "1280" for Stockholm Municipality
+  - When using a county code, you'll also receive alerts for all municipalities within that county
+  - Leave empty or omit to receive alerts for all of Sweden
+
+Example for Stockholm County:
+```javascript
+config: {
+    geoCode: "12",    // Filter alerts for Stockholm County and its municipalities
+    preferredLanguage: "sv-SE"
+}
+```
+
+Example for Stockholm Municipality:
+```javascript
+config: {
+    geoCode: "1280",  // Filter alerts only for Stockholm Municipality
+    preferredLanguage: "sv-SE"
 }
 ```
 
@@ -133,6 +158,7 @@ config: {
 |--------|-------------|---------|-----------------|
 | `preferredLanguage` | Primary display language | "sv-SE" | "sv-SE", "en-US" |
 | `showBothLanguages` | Show both languages | false | true, false |
+| `geoCode` | Location filter | null | County (2 digits) or Municipality (4 digits) code |
 | `useDummyData` | Enable test mode | false | true, false |
 | `dummySeverity` | Test alert severity | "Severe" | "Severe", "Moderate", "Minor" |
 | `dummyUrgency` | Test alert urgency | "Immediate" | "Immediate", "Expected", "Future" |
@@ -182,9 +208,34 @@ Lägg till detta i din `config/config.js` fil:
         maxHeight: "300px",           // Justera maxhöjd efter behov
         showIcons: true,              // Visa ikoner
         animateIn: true,              // Aktivera animationer
+        geoCode: "12",                // Platsfilter (t.ex. "12" för Stockholms län)
         preferredLanguage: "sv-SE",    // Språkinställning
         showBothLanguages: false       // Visa båda språken
     }
+}
+```
+
+### Platsfiltrering
+Modulen stöder platsbaserad filtrering med svenska GeoCodes:
+- `geoCode`: 
+  - Två siffror för län, t.ex. "12" för Stockholms län
+  - Fyra siffror för kommuner, t.ex. "1280" för Stockholms kommun
+  - När du använder en länskod får du även varningar för alla kommuner inom länet
+  - Lämna tomt eller utelämna för att få varningar för hela Sverige
+
+Exempel för Stockholms län:
+```javascript
+config: {
+    geoCode: "12",    // Filtrera varningar för Stockholms län och dess kommuner
+    preferredLanguage: "sv-SE"
+}
+```
+
+Exempel för Stockholms kommun:
+```javascript
+config: {
+    geoCode: "1280",  // Filtrera varningar endast för Stockholms kommun
+    preferredLanguage: "sv-SE"
 }
 ```
 
@@ -237,6 +288,7 @@ För att enkelt testa modulens utseende och funktionalitet kan du använda det i
 |------------|-------------|----------|-------------------|
 | `preferredLanguage` | Primärt visningsspråk | "sv-SE" | "sv-SE", "en-US" |
 | `showBothLanguages` | Visa båda språken | false | true, false |
+| `geoCode` | Platsfilter | null | Län (2 siffror) eller kommun (4 siffror) kod |
 | `useDummyData` | Aktivera testläge | false | true, false |
 | `dummySeverity` | Testvarningens allvarlighetsgrad | "Severe" | "Severe", "Moderate", "Minor" |
 | `dummyUrgency` | Testvarningens prioritet | "Immediate" | "Immediate", "Expected", "Future" |

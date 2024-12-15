@@ -1,23 +1,32 @@
-/* MagicMirror² Module: MMM-SRVMA
- * Version: 2.1.0
- * Enhanced version with English translation support
+/* MagicMirror² Module: MMM-SRVMA 
+ * Version: 2.1.2 
+ * A module to display Swedish VMA (Important Public Announcements) with support for location filtering
+ * and English translations.
+ * 
+ * Updates in 2.1.2:
+ * - Improved error handling and loading states
+ * - Enhanced debugging for API communication
+ * - Better handling of empty states and API responses
  */
 
 Module.register("MMM-SRVMA", {
+    // Default module config
     defaults: {
-        useDummyData: false,
-        dummySeverity: "Severe",
-        dummyUrgency: "Immediate",
-        updateInterval: 60000,
-        alertAgeThreshold: 3600000,
-        maxHeight: "300px",
-        width: "400px",
-        showIcons: true,
-        animateIn: true,
-        preferredLanguage: "sv-SE", // Default to Swedish, can be "en-US"
-        showBothLanguages: false    // Option to show both language versions
+        useDummyData: false,        // Enable for testing without API
+        dummySeverity: "Severe",    // Used for test data: Severe, Moderate, Minor
+        dummyUrgency: "Immediate",  // Used for test data: Immediate, Expected, Future
+        updateInterval: 60000,      // Update frequency in milliseconds (1 minute)
+        alertAgeThreshold: 3600000, // Show alerts from the last hour (1 hour in ms)
+        maxHeight: "300px",         // Maximum height of the module
+        width: "400px",            // Width of the module
+        showIcons: true,           // Show weather icons for relevant alerts
+        animateIn: true,           // Enable fade-in animation
+        preferredLanguage: "sv-SE", // Default language (sv-SE or en-US)
+        showBothLanguages: false,   // Option to show both language versions
+        geoCode: null,             // GeoCode for location filtering (e.g., "12" for Stockholm County)
     },
 
+    // Required styles
     getStyles: function() {
         return [
             "MMM-SRVMA.css",
@@ -26,27 +35,38 @@ Module.register("MMM-SRVMA", {
         ];
     },
 
+    // Module initialization
     start: function() {
         Log.info("Starting module: " + this.name);
         this.alerts = [];
         this.loaded = false;
+        
+        // Log configuration on startup
+        if (this.config.geoCode) {
+            Log.info(`VMA: GeoCode configured: ${this.config.geoCode}`);
+        }
+        
         this.getData();
         this.scheduleUpdate();
     },
 
+    // Fetch data from node_helper
     getData: function() {
+        Log.debug("VMA: Requesting alerts data");
         this.sendSocketNotification("FETCH_ALERTS", {
             ...this.config,
             timestamp: new Date().toISOString()
         });
     },
 
+    // Schedule regular updates
     scheduleUpdate: function() {
         setInterval(() => {
             this.getData();
         }, this.config.updateInterval);
     },
 
+    // Process alerts data
     processAlerts: function(alerts) {
         return alerts.map(alert => {
             if (!alert.info || alert.info.length === 0) return null;
@@ -67,28 +87,47 @@ Module.register("MMM-SRVMA", {
         }).filter(alert => alert !== null);
     },
 
+    // Create the module's DOM representation
     getDom: function() {
         const wrapper = document.createElement("div");
         wrapper.className = `mmm-srvma-wrapper ${this.config.animateIn ? 'fade-in' : ''}`;
         wrapper.style.width = this.config.width;
         wrapper.style.maxHeight = this.config.maxHeight;
 
+        // Handle loading state
         if (!this.loaded) {
-            wrapper.innerHTML = "Loading...";
-            wrapper.className = "dimmed light small";
+            const loadingDiv = document.createElement("div");
+            loadingDiv.innerHTML = "Loading...";
+            loadingDiv.className = "dimmed light small loading";
+            wrapper.appendChild(loadingDiv);
             return wrapper;
         }
 
+        // Handle invalid data
+        if (!Array.isArray(this.alerts)) {
+            console.error("VMA: Invalid alerts data received:", this.alerts);
+            const errorDiv = document.createElement("div");
+            errorDiv.innerHTML = "Error loading alerts";
+            errorDiv.className = "dimmed light small error";
+            wrapper.appendChild(errorDiv);
+            return wrapper;
+        }
+
+        // Handle no alerts
         if (this.alerts.length === 0) {
-            wrapper.innerHTML = this.config.preferredLanguage === "sv-SE" ? 
+            const noAlertsDiv = document.createElement("div");
+            noAlertsDiv.innerHTML = this.config.preferredLanguage === "sv-SE" ? 
                 "Inga aktuella VMA" : "No current alerts";
-            wrapper.className = "dimmed light small";
+            noAlertsDiv.className = "dimmed light small no-alerts";
+            wrapper.appendChild(noAlertsDiv);
             return wrapper;
         }
 
+        // Create alerts container
         const alertContainer = document.createElement("div");
         alertContainer.className = "alert-container";
 
+        // Process and add alerts
         this.processAlerts(this.alerts).forEach(alert => {
             const alertDiv = this.createAlertElement(alert);
             if (alertDiv) alertContainer.appendChild(alertDiv);
@@ -98,6 +137,7 @@ Module.register("MMM-SRVMA", {
         return wrapper;
     },
 
+    // Create individual alert elements
     createAlertElement: function(alert) {
         if (!alert.processedInfo) return null;
 
@@ -117,14 +157,14 @@ Module.register("MMM-SRVMA", {
             alertDiv.appendChild(iconDiv);
         }
 
-        // Content container
+        // Add content container
         const contentDiv = document.createElement("div");
         contentDiv.className = "alert-content";
 
-        // Primary language content
+        // Add primary language content
         this.addAlertContent(contentDiv, info, alert);
 
-        // Add English translation if configured and available
+        // Add English translation if configured
         if (this.config.showBothLanguages && alert.englishInfo) {
             const divider = document.createElement("hr");
             divider.className = "alert-divider";
@@ -136,20 +176,21 @@ Module.register("MMM-SRVMA", {
         return alertDiv;
     },
 
+    // Add content to alert element
     addAlertContent: function(container, info, alert) {
-        // Title
+        // Add title
         const title = document.createElement("div");
         title.className = "alert-title";
         title.textContent = info.event;
         container.appendChild(title);
 
-        // Description
+        // Add description
         const description = document.createElement("div");
         description.className = "alert-description";
         description.textContent = info.description;
         container.appendChild(description);
 
-        // Metadata
+        // Add metadata
         const metadata = document.createElement("div");
         metadata.className = "alert-metadata";
         metadata.textContent = `${info.senderName} - ${new Date(alert.sent).toLocaleString(
@@ -158,9 +199,8 @@ Module.register("MMM-SRVMA", {
         container.appendChild(metadata);
     },
 
+    // Get appropriate icon for alert type
     getAlertIcon: function(alert) {
-        if (!this.config.showIcons) return null;
-
         const iconMap = {
             Severe: {
                 fire: "wi-fire",
@@ -184,6 +224,7 @@ Module.register("MMM-SRVMA", {
             : iconMap[severity].default || iconMap.Minor.default;
     },
 
+    // Get CSS class for urgency level
     getUrgencyClass: function(urgency) {
         const urgencyMap = {
             Immediate: "urgency-immediate",
@@ -193,8 +234,10 @@ Module.register("MMM-SRVMA", {
         return urgencyMap[urgency] || "urgency-unknown";
     },
 
+    // Handle socket notifications from node_helper
     socketNotificationReceived: function(notification, payload) {
         if (notification === "ALERTS_DATA") {
+            Log.debug("VMA: Received alerts data:", payload);
             this.alerts = Array.isArray(payload) ? payload : [];
             this.loaded = true;
             this.updateDom();

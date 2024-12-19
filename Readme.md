@@ -1,311 +1,206 @@
 # MMM-SRVMA - VMA Alerts for MagicMirror²
+Version 2.1.3
 
 A MagicMirror² module for displaying VMA (Viktigt Meddelande till Allmänheten - Important Public Announcements) from Swedish authorities through Sveriges Radio's API. This module shows critical public safety information, weather warnings, and other important alerts in Sweden.
 
+⚠️ **IMPORTANT**: This module only works within Sweden as it uses the Swedish VMA system. The API only provides alerts for Swedish territories and municipalities.
+
 ![MMM-SRVMA Screenshot](SRVMA.png)
 
-## API Attribution
-This module uses the VMA API service provided by Sveriges Radio AB. The VMA system is owned and operated by Sveriges Radio AB on behalf of Swedish authorities. For more information about the VMA service, visit:
+## API Information
+This module uses the official VMA API service provided by Sveriges Radio AB. The VMA system is owned and operated by Sveriges Radio AB on behalf of Swedish authorities.
+
+For more information about the VMA service:
 - [VMA API Documentation](https://vmaapi.sr.se/index.html)
 - [VMA API Release Notes](https://vmaapi.sr.se/releasenotes)
 - [Sveriges Radio VMA Information](https://sverigesradio.se/artikel/vma-viktigt-meddelande-till-allmanheten)
+- [GeoCodes Reference](https://vmaapi.sr.se/api/v2/area/sweden) (List of valid Swedish location codes)
 
-## English 🇬🇧
+## What's New in v2.1.3
+- Added support for English translations
+- Improved positioning options with full-width banner support
+- Enhanced error handling and loading states
+- Added test mode for easy setup verification
 
-### Description
-This module displays Swedish VMA (Important Public Announcements) on your MagicMirror. It shows different types of alerts with color-coding based on severity:
-- Red: Severe alerts (like industrial accidents)
-- Orange: Moderate alerts (like severe weather warnings)
-- Yellow: Minor alerts (like traffic disruptions)
+## Before You Begin
+You'll need to edit the MagicMirror² configuration file located at:
+```bash
+~/MagicMirror/config/config.js
+```
 
-### Installation
-1. Navigate to your MagicMirror's modules folder:
+💡 TIP: If you're new to MagicMirror², this file contains all your module settings. Make sure to back it up before making changes!
+
+## Installation Steps
+
+1. Open a terminal window (or Command Prompt in Windows)
+
+2. Navigate to your MagicMirror's modules folder:
 ```bash
 cd ~/MagicMirror/modules
 ```
 
-2. Clone this repository:
+3. Clone this repository:
 ```bash
 git clone https://github.com/cgillinger/MMM-SRVMA
 ```
 
-3. Install dependencies:
+4. Install dependencies:
 ```bash
 cd MMM-SRVMA
 npm install
 ```
 
-### Configuration
-Add this to your `config/config.js` file:
+## Configuration Guide
+
+### Step 1: Choose Your Position
+The module can be displayed in two different ways:
+
+1. **Full-Width Banner** (`position: "top_bar"`)
+   - Spans the entire width of your screen
+   - Perfect for important announcements
+   - Automatically centers content
+   
+2. **Regular Card** (any other position)
+   - Fixed width display
+   - Fits neatly in any corner
+   - Maintains compact appearance
+
+### Step 2: Edit Your Configuration
+Open your `config/config.js` file and add one of these configurations:
+
+#### For Full-Width Banner:
 ```javascript
 {
     module: "MMM-SRVMA",
-    position: "top_right",
+    position: "top_bar",    // This creates the full-width banner
     config: {
-        // Basic settings
-        updateInterval: 60000,         // Update every minute
-        alertAgeThreshold: 3600000,    // Show alerts from the last hour (1 hour in ms)
-        width: "400px",               // Adjust width as needed
-        maxHeight: "300px",           // Adjust max height as needed
+        updateInterval: 60000,        // How often to check for new alerts (in milliseconds)
+        showIcons: true,             // Show weather icons when applicable
+        animateIn: true,             // Smooth fade-in animation
+        geoCode: "12",               // Your location code (e.g., "12" for Stockholm County)
+        preferredLanguage: "sv-SE",   // "sv-SE" for Swedish, "en-US" for English
+        showBothLanguages: false      // Set to true to show both languages
+    }
+}
+```
+
+#### For Regular Card Display:
+```javascript
+{
+    module: "MMM-SRVMA",
+    position: "top_right",   // Can be top_left, bottom_right, etc.
+    config: {
+        width: "400px",      // Width of the module (ignored in top_bar position)
+        maxHeight: "300px",  // Maximum height
+        updateInterval: 60000,
         showIcons: true,
         animateIn: true,
-        geoCode: "12",                // Location filter (e.g., "12" for Stockholm County)
-        preferredLanguage: "sv-SE",    // Language setting ("sv-SE" for Swedish, "en-US" for English)
-        showBothLanguages: false       // Set to true to show both Swedish and English when available
+        geoCode: "12",
+        preferredLanguage: "sv-SE",
+        showBothLanguages: false
     }
 }
 ```
 
-### Location Filtering
-The module supports location-based filtering using Swedish GeoCodes:
-- `geoCode`: 
-  - Two digits for counties (län), e.g., "12" for Stockholm County
-  - Four digits for municipalities (kommuner), e.g., "1280" for Stockholm Municipality
-  - When using a county code, you'll also receive alerts for all municipalities within that county
-  - Leave empty or omit to receive alerts for all of Sweden
+### Step 3: Choose Your Location
+Find your location code (Swedish locations only):
+- Two digits for counties (län)
+- Four digits for municipalities (kommuner)
 
-Example for Stockholm County:
+Common codes:
+- "12" = Stockholm County
+- "1280" = Stockholm Municipality
+- "14" = Gothenburg County
+- "1480" = Gothenburg Municipality
+
+Add your code to the config:
 ```javascript
 config: {
-    geoCode: "12",    // Filter alerts for Stockholm County and its municipalities
-    preferredLanguage: "sv-SE"
+    geoCode: "12",    // Replace with your location code
+    // ... other settings
 }
 ```
 
-Example for Stockholm Municipality:
+### Step 4: Choose Your Language
+Pick one:
 ```javascript
+// For Swedish only:
 config: {
-    geoCode: "1280",  // Filter alerts only for Stockholm Municipality
-    preferredLanguage: "sv-SE"
+    preferredLanguage: "sv-SE",
+    showBothLanguages: false
+}
+
+// For English only:
+config: {
+    preferredLanguage: "en-US",
+    showBothLanguages: false
+}
+
+// For both languages:
+config: {
+    preferredLanguage: "sv-SE",  // Primary language
+    showBothLanguages: true      // Shows both when available
 }
 ```
 
-### Language Settings
-The module supports dual-language display with these options:
-- `preferredLanguage`: 
-  - Use `"sv-SE"` for Swedish (default)
-  - Use `"en-US"` for English
-- `showBothLanguages`: 
-  - Set to `true` to display both languages when available
-  - Set to `false` to show only preferred language (default)
+## Testing Your Setup
 
-Example for English with both languages shown:
-```javascript
-config: {
-    preferredLanguage: "en-US",    // Show English as primary language
-    showBothLanguages: true        // Also show Swedish text when available
-}
-```
+Before connecting to live data, you can test the module:
 
-Example for Swedish only:
-```javascript
-config: {
-    preferredLanguage: "sv-SE",    // Show Swedish only
-    showBothLanguages: false       // Don't show English translations
-}
-```
-
-### Test Mode
-To easily test the module's appearance and functionality, you can use the built-in test mode:
-
-1. Enable test mode in your config:
+1. Add this test configuration:
 ```javascript
 {
     module: "MMM-SRVMA",
-    position: "top_right",
+    position: "top_right",  // Try both top_bar and other positions
     config: {
-        useDummyData: true,        // Enable test mode
-        dummySeverity: "Severe",   // Choose severity level
-        dummyUrgency: "Immediate", // Choose urgency level
-        preferredLanguage: "en-US" // Test with English
+        useDummyData: true,        // Enables test mode
+        dummySeverity: "Severe",   // Try: "Severe", "Moderate", or "Minor"
+        dummyUrgency: "Immediate", // Try: "Immediate", "Expected", or "Future"
+        preferredLanguage: "en-US" // Test your language preference
     }
 }
 ```
 
-2. Available test options:
-- Severity levels:
-  - `"Severe"` - Red alert (highest)
-  - `"Moderate"` - Orange alert
-  - `"Minor"` - Yellow alert (lowest)
-- Urgency levels:
-  - `"Immediate"` - Requires immediate attention
-  - `"Expected"` - Expected in near future
-  - `"Future"` - Future concern
+2. Restart your MagicMirror
+3. You should see a test alert appear
 
-3. Common test configurations:
+## Troubleshooting
 
-Test severe alert in English:
-```javascript
-config: {
-    useDummyData: true,
-    dummySeverity: "Severe",
-    preferredLanguage: "en-US"
-}
-```
+If the module doesn't appear:
+1. Check your `config.js` file for proper formatting (commas, brackets)
+2. Look for errors in the MagicMirror console (F12 in most browsers)
+3. Verify that the module folder name is exactly `MMM-SRVMA`
+4. Ensure you're within Swedish territories (API limitation)
 
-Test moderate alert in both languages:
-```javascript
-config: {
-    useDummyData: true,
-    dummySeverity: "Moderate",
-    preferredLanguage: "en-US",
-    showBothLanguages: true
-}
-```
+## All Configuration Options
 
-### Configuration Options
-| Option | Description | Default | Available Values |
-|--------|-------------|---------|-----------------|
-| `preferredLanguage` | Primary display language | "sv-SE" | "sv-SE", "en-US" |
-| `showBothLanguages` | Show both languages | false | true, false |
-| `geoCode` | Location filter | null | County (2 digits) or Municipality (4 digits) code |
-| `useDummyData` | Enable test mode | false | true, false |
-| `dummySeverity` | Test alert severity | "Severe" | "Severe", "Moderate", "Minor" |
-| `dummyUrgency` | Test alert urgency | "Immediate" | "Immediate", "Expected", "Future" |
-| `updateInterval` | Update frequency (ms) | 60000 | any number |
-| `alertAgeThreshold` | Max alert age (ms) | 3600000 | any number |
-| `width` | Module width | "400px" | any valid CSS width |
-| `maxHeight` | Module max height | "300px" | any valid CSS height |
+| Option | What It Does | Default | Valid Options |
+|--------|-------------|---------|---------------|
+| `position` | Where to display the module | "top_right" | "top_bar" or any MM position |
+| `width` | Module width (ignored in top_bar) | "400px" | Any CSS width |
+| `maxHeight` | Maximum height | "300px" | Any CSS height |
+| `preferredLanguage` | Primary language | "sv-SE" | "sv-SE", "en-US" |
+| `showBothLanguages` | Show dual languages | false | true, false |
+| `geoCode` | Location filter | null | County/Municipality code |
 | `showIcons` | Display alert icons | true | true, false |
 | `animateIn` | Enable animations | true | true, false |
+| `updateInterval` | Update frequency (ms) | 60000 | Any number |
+| `alertAgeThreshold` | Max alert age (ms) | 3600000 | Any number |
+| `useDummyData` | Test mode | false | true, false |
+| `dummySeverity` | Test alert severity | "Severe" | "Severe", "Moderate", "Minor" |
+| `dummyUrgency` | Test alert urgency | "Immediate" | "Immediate", "Expected", "Future" |
 
-## Svenska 🇸🇪
+## Support & Updates
 
-### Beskrivning
-Denna modul visar VMA (Viktigt Meddelande till Allmänheten) på din MagicMirror. Den använder Sveriges Radios VMA-API för att hämta och visa viktiga meddelanden. Varningar visas med färgkodning baserat på allvarlighetsgrad:
-- Röd: Allvarliga varningar (som industriolyckor)
-- Orange: Måttliga varningar (som vädervarningar)
-- Gul: Mindre allvarliga varningar (som trafikstörningar)
+- For help: Open an issue on GitHub
+- For updates: Watch the repository or check version numbers
+- Current stable version: 2.1.3
+- Geographic coverage: Sweden only
 
-### Installation
-1. Navigera till din MagicMirror's modules-mapp:
-```bash
-cd ~/MagicMirror/modules
-```
+## Attribution & License
+- Module created by Christian Gillinger
+- Uses Sveriges Radio's VMA API service (Swedish territories only)
+- Version 2.1.3 released December 2024
+- MIT License - see LICENSE file for details
 
-2. Klona detta repository:
-```bash
-git clone https://github.com/chrillgi/MMM-SRVMA
-```
-
-3. Installera beroenden:
-```bash
-cd MMM-SRVMA
-npm install
-```
-
-### Grundkonfiguration
-Lägg till detta i din `config/config.js` fil:
-```javascript
-{
-    module: "MMM-SRVMA",
-    position: "top_right",
-    config: {
-        // Grundinställningar
-        updateInterval: 60000,         // Uppdatera varje minut
-        alertAgeThreshold: 3600000,    // Visa varningar från senaste timmen
-        width: "400px",               // Justera bredd efter behov
-        maxHeight: "300px",           // Justera maxhöjd efter behov
-        showIcons: true,              // Visa ikoner
-        animateIn: true,              // Aktivera animationer
-        geoCode: "12",                // Platsfilter (t.ex. "12" för Stockholms län)
-        preferredLanguage: "sv-SE",    // Språkinställning
-        showBothLanguages: false       // Visa båda språken
-    }
-}
-```
-
-### Platsfiltrering
-Modulen stöder platsbaserad filtrering med svenska GeoCodes:
-- `geoCode`: 
-  - Två siffror för län, t.ex. "12" för Stockholms län
-  - Fyra siffror för kommuner, t.ex. "1280" för Stockholms kommun
-  - När du använder en länskod får du även varningar för alla kommuner inom länet
-  - Lämna tomt eller utelämna för att få varningar för hela Sverige
-
-Exempel för Stockholms län:
-```javascript
-config: {
-    geoCode: "12",    // Filtrera varningar för Stockholms län och dess kommuner
-    preferredLanguage: "sv-SE"
-}
-```
-
-Exempel för Stockholms kommun:
-```javascript
-config: {
-    geoCode: "1280",  // Filtrera varningar endast för Stockholms kommun
-    preferredLanguage: "sv-SE"
-}
-```
-
-### Språkinställningar
-Modulen stöder visning på två språk med följande alternativ:
-- `preferredLanguage`: 
-  - Använd `"sv-SE"` för svenska (standard)
-  - Använd `"en-US"` för engelska
-- `showBothLanguages`: 
-  - Sätt till `true` för att visa både svenska och engelska
-  - Sätt till `false` för att bara visa valt språk (standard)
-
-Exempel för svenska med engelska översättningar:
-```javascript
-config: {
-    preferredLanguage: "sv-SE",    // Visa svenska som huvudspråk
-    showBothLanguages: true        // Visa även engelska översättningar
-}
-```
-
-### Testläge
-För att enkelt testa modulens utseende och funktionalitet kan du använda det inbyggda testläget:
-
-1. Aktivera testläge i din konfiguration:
-```javascript
-{
-    module: "MMM-SRVMA",
-    position: "top_right",
-    config: {
-        useDummyData: true,        // Aktivera testläge
-        dummySeverity: "Severe",   // Välj allvarlighetsgrad
-        dummyUrgency: "Immediate", // Välj prioritetsnivå
-        preferredLanguage: "sv-SE" // Testa på svenska
-    }
-}
-```
-
-2. Tillgängliga testalternativ:
-- Allvarlighetsgrader:
-  - `"Severe"` - Röd varning (högst)
-  - `"Moderate"` - Orange varning
-  - `"Minor"` - Gul varning (lägst)
-- Prioritetsnivåer:
-  - `"Immediate"` - Kräver omedelbar uppmärksamhet
-  - `"Expected"` - Förväntas inom kort
-  - `"Future"` - Framtida händelse
-
-### Konfigurationsalternativ
-| Alternativ | Beskrivning | Standard | Tillgängliga värden |
-|------------|-------------|----------|-------------------|
-| `preferredLanguage` | Primärt visningsspråk | "sv-SE" | "sv-SE", "en-US" |
-| `showBothLanguages` | Visa båda språken | false | true, false |
-| `geoCode` | Platsfilter | null | Län (2 siffror) eller kommun (4 siffror) kod |
-| `useDummyData` | Aktivera testläge | false | true, false |
-| `dummySeverity` | Testvarningens allvarlighetsgrad | "Severe" | "Severe", "Moderate", "Minor" |
-| `dummyUrgency` | Testvarningens prioritet | "Immediate" | "Immediate", "Expected", "Future" |
-| `updateInterval` | Uppdateringsfrekvens (ms) | 60000 | valfritt nummer |
-| `alertAgeThreshold` | Max ålder på varningar (ms) | 3600000 | valfritt nummer |
-| `width` | Modulbredd | "400px" | valfri CSS-bredd |
-| `maxHeight` | Modulens maxhöjd | "300px" | valfri CSS-höjd |
-| `showIcons` | Visa varningsikoner | true | true, false |
-| `animateIn` | Aktivera animationer | true | true, false |
-
-## Support
-För support, vänligen öppna ett ärende på GitHub.
-
-## Attribution and License
-- This module is created by Christian Gillinger under the MIT License
-- VMA API service is provided by Sveriges Radio AB
-- MagicMirror² is an open source project
-
-## License
-MIT License - see LICENSE file for details
+Need more help? Open an issue on GitHub or check the MagicMirror forums!

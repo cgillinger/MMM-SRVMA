@@ -1,2 +1,0 @@
-cd ~/MagicMirror/modules/MMM-SRVMA
-npm install axios

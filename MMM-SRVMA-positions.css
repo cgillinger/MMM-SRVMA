@@ -1,0 +1,46 @@
+/* Default wrapper style */
+.mmm-srvma-wrapper {
+    width: var(--width, 400px);
+    max-width: 100%;
+}
+
+/* Specific ONLY to top bar position - not any other top position */
+div.region.top.bar > .container .module.MMM-SRVMA .mmm-srvma-wrapper {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin-left: calc(-1 * var(--gap-body-left, 60px));
+    margin-right: calc(-1 * var(--gap-body-right, 60px));
+    padding: 0;
+    position: relative;
+    z-index: 1;
+}
+
+div.region.top.bar > .container .module.MMM-SRVMA header {
+    position: relative;
+    padding-left: var(--gap-body-left, 60px);
+    padding-right: var(--gap-body-right, 60px);
+    z-index: 2;
+    background: var(--color-background, #000);
+}
+
+div.region.top.bar > .container .module.MMM-SRVMA .alert-container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+div.region.top.bar > .container .module.MMM-SRVMA .alert {
+    width: calc(100% - var(--gap-body-left, 60px) - var(--gap-body-right, 60px));
+    margin: 0 auto;
+    padding: 15px var(--gap-body-left, 60px);
+    border-radius: 0;
+    box-sizing: border-box;
+    border-width: 2px 0;
+    border-style: solid;
+}
+
+div.region.top.bar > .container .module.MMM-SRVMA .alert-content {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}

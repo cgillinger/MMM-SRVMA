@@ -1,18 +1,15 @@
 /* MagicMirror² Module: MMM-SRVMA 
- * Version: 2.1.2 
+ * Version: 2.1.3
  * A module to display Swedish VMA (Important Public Announcements) with support for location filtering
  * and English translations.
- * 
- * Updates in 2.1.2:
- * - Improved error handling and loading states
- * - Enhanced debugging for API communication
- * - Better handling of empty states and API responses
  */
 
 Module.register("MMM-SRVMA", {
     // Default module config
     defaults: {
         useDummyData: false,        // Enable for testing without API
+        showInitialMessage: true,   // Whether to show the initial "no alerts" message
+        initialMessageDuration: 60000, // Default duration to show initial message (1 minute)
         dummySeverity: "Severe",    // Used for test data: Severe, Moderate, Minor
         dummyUrgency: "Immediate",  // Used for test data: Immediate, Expected, Future
         updateInterval: 60000,      // Update frequency in milliseconds (1 minute)
@@ -30,6 +27,7 @@ Module.register("MMM-SRVMA", {
     getStyles: function() {
         return [
             "MMM-SRVMA.css",
+            "MMM-SRVMA-positions.css",
             "font-awesome.css",
             "weather-icons.css"
         ];
@@ -40,6 +38,7 @@ Module.register("MMM-SRVMA", {
         Log.info("Starting module: " + this.name);
         this.alerts = [];
         this.loaded = false;
+        this.initialLoad = this.config.showInitialMessage;
         
         // Log configuration on startup
         if (this.config.geoCode) {
@@ -48,6 +47,14 @@ Module.register("MMM-SRVMA", {
         
         this.getData();
         this.scheduleUpdate();
+
+        // Only set up the timer if showing initial message is enabled
+        if (this.config.showInitialMessage) {
+            setTimeout(() => {
+                this.initialLoad = false;
+                this.updateDom();
+            }, this.config.initialMessageDuration);
+        }
     },
 
     // Fetch data from node_helper
@@ -91,8 +98,12 @@ Module.register("MMM-SRVMA", {
     getDom: function() {
         const wrapper = document.createElement("div");
         wrapper.className = `mmm-srvma-wrapper ${this.config.animateIn ? 'fade-in' : ''}`;
-        wrapper.style.width = this.config.width;
-        wrapper.style.maxHeight = this.config.maxHeight;
+        
+        // Only set inline width if not in top_bar position
+        if (this.data.position !== "top_bar") {
+            wrapper.style.width = this.config.width;
+            wrapper.style.maxHeight = this.config.maxHeight;
+        }
 
         // Handle loading state
         if (!this.loaded) {
@@ -116,10 +127,14 @@ Module.register("MMM-SRVMA", {
         // Handle no alerts
         if (this.alerts.length === 0) {
             const noAlertsDiv = document.createElement("div");
-            noAlertsDiv.innerHTML = this.config.preferredLanguage === "sv-SE" ? 
-                "Inga aktuella VMA" : "No current alerts";
-            noAlertsDiv.className = "dimmed light small no-alerts";
-            wrapper.appendChild(noAlertsDiv);
+            if (this.initialLoad) {
+                noAlertsDiv.innerHTML = this.config.preferredLanguage === "sv-SE" ? 
+                    "Inga aktuella VMA" : "No current alerts";
+                noAlertsDiv.className = "dimmed light small no-alerts";
+                wrapper.appendChild(noAlertsDiv);
+            } else {
+                wrapper.style.display = "none";
+            }
             return wrapper;
         }
 

@@ -1,11 +1,7 @@
-/* MMM-SRVMA node_helper.js
- * Version: 2.1.3
- * Backend handler for Swedish VMA (Important Public Announcements)
- * 
- * Updates in 2.1.3:
- * - Removed GeoCode display from dummy alerts
- * - Maintained GeoCode filtering functionality
- * - Improved API error handling
+/**
+ * @file node_helper.js
+ * @version 2.2.2
+ * @description Backend handler for Swedish VMA with enhanced debugging
  */
 
 const NodeHelper = require("node_helper");
@@ -13,19 +9,20 @@ const axios = require("axios");
 
 module.exports = NodeHelper.create({
     start: function() {
-        console.log("Starting node helper for MMM-SRVMA");
+        console.log("[SRVMA] Starting node helper with debug logging enabled");
+        this.debugMode = true; // Enable detailed logging
         
-        // Initialize dummy data template with both languages
+        // Initialize dummy data template with bilingual support
         this.dummyData = {
             Severe: {
                 severity: "Severe",
                 urgency: "Immediate",
                 sv: {
-                    description: "TESTALARM: Allvarlig industriolycka",
+                    description: "FALLBACK TESTALARM: Allvarlig industriolycka",
                     event: "Viktigt meddelande till allmänheten (VMA)"
                 },
                 en: {
-                    description: "TEST ALERT: Serious industrial accident",
+                    description: "FALLBACK TEST ALERT: Serious industrial accident",
                     event: "Important Public Announcement"
                 }
             },
@@ -33,11 +30,11 @@ module.exports = NodeHelper.create({
                 severity: "Moderate",
                 urgency: "Expected",
                 sv: {
-                    description: "TESTALARM: Vädervarning nivå 2",
+                    description: "FALLBACK TESTALARM: Vädervarning nivå 2",
                     event: "Viktigt meddelande till allmänheten (VMA)"
                 },
                 en: {
-                    description: "TEST ALERT: Weather warning level 2",
+                    description: "FALLBACK TEST ALERT: Weather warning level 2",
                     event: "Important Public Announcement"
                 }
             },
@@ -45,43 +42,96 @@ module.exports = NodeHelper.create({
                 severity: "Minor",
                 urgency: "Future",
                 sv: {
-                    description: "TESTALARM: Trafikstörningar väntas",
+                    description: "FALLBACK TESTALARM: Trafikstörningar väntas",
                     event: "Viktigt meddelande till allmänheten (VMA)"
                 },
                 en: {
-                    description: "TEST ALERT: Traffic disruptions expected",
+                    description: "FALLBACK TEST ALERT: Traffic disruptions expected",
                     event: "Important Public Announcement"
                 }
             }
         };
+
+        // API configuration
+        this.apiConfig = {
+            production: {
+                url: "https://vmaapi.sr.se/api/v2/alerts",
+                userAgent: "MagicMirror-SRVMA/2.2.2"
+            },
+            test: {
+                url: "https://vmaapi.sr.se/testapi/v2/alerts",
+                userAgent: "MagicMirror-SRVMA/2.2.2"
+            }
+        };
+    },
+
+    debugLog: function(message, data = null) {
+        if (this.debugMode) {
+            console.log(`[SRVMA Debug] ${message}`);
+            if (data) {
+                console.log(JSON.stringify(data, null, 2));
+            }
+        }
     },
 
     socketNotificationReceived: function(notification, payload) {
         if (notification === "FETCH_ALERTS") {
-            console.log("Received request to fetch alerts with config:", {
-                geoCode: payload.geoCode,
-                useDummyData: payload.useDummyData
-            });
-            
+            this.debugLog("Received FETCH_ALERTS notification with payload:", payload);
             this.fetchAlerts(payload);
         }
     },
 
-    generateDummyAlert: function(config) {
+    async makeApiRequest(url, params, headers) {
+        this.debugLog(`Making API request to: ${url}?${params.toString()}`);
+        this.debugLog("With headers:", headers);
+
+        try {
+            const response = await axios.get(`${url}?${params.toString()}`, {
+                timeout: 10000,
+                headers: headers
+            });
+
+            this.debugLog("API Response received:", {
+                status: response.status,
+                statusText: response.statusText,
+                dataReceived: !!response.data
+            });
+
+            return {
+                success: true,
+                data: response.data
+            };
+        } catch (error) {
+            this.debugLog("API Request failed:", {
+                message: error.message,
+                status: error.response?.status,
+                statusText: error.response?.statusText
+            });
+
+            return {
+                success: false,
+                error: error,
+                message: error.message
+            };
+        }
+    },
+
+    generateLocalDummyAlert: function(config) {
+        this.debugLog("Generating local dummy alert with config:", config);
+
         try {
             const severity = config.dummySeverity || "Severe";
             const dummyTemplate = this.dummyData[severity];
             
             if (!dummyTemplate) {
-                console.error("Invalid severity level specified:", severity);
+                this.debugLog("Invalid severity specified:", severity);
                 return null;
             }
 
-            // Create base alert with proper timestamps
             const now = new Date();
             const baseAlert = {
-                identifier: `TEST-${now.getTime()}`,
-                sender: "Sveriges Radio Test API",
+                identifier: `FALLBACK-TEST-${now.getTime()}`,
+                sender: "Sveriges Radio Test API (Fallback)",
                 sent: now.toISOString(),
                 status: "Test",
                 msgType: "Alert",
@@ -89,7 +139,6 @@ module.exports = NodeHelper.create({
                 info: []
             };
 
-            // Add Swedish info
             baseAlert.info.push({
                 language: "sv-SE",
                 category: "Safety",
@@ -97,12 +146,11 @@ module.exports = NodeHelper.create({
                 urgency: config.dummyUrgency || dummyTemplate.urgency,
                 severity: dummyTemplate.severity,
                 certainty: "Observed",
-                senderName: "Sveriges Radio Test",
+                senderName: "Sveriges Radio Test (Fallback)",
                 description: dummyTemplate.sv.description,
                 web: "https://sverigesradio.se/vma"
             });
 
-            // Add English info
             baseAlert.info.push({
                 language: "en-US",
                 category: "Safety",
@@ -110,68 +158,103 @@ module.exports = NodeHelper.create({
                 urgency: config.dummyUrgency || dummyTemplate.urgency,
                 severity: dummyTemplate.severity,
                 certainty: "Observed",
-                senderName: "Swedish Radio Test",
+                senderName: "Swedish Radio Test (Fallback)",
                 description: dummyTemplate.en.description,
                 web: "https://sverigesradio.se/vma"
             });
 
+            this.debugLog("Successfully generated dummy alert:", baseAlert);
             return baseAlert;
 
         } catch (error) {
-            console.error("Error generating dummy alert:", error);
+            this.debugLog("Error generating dummy alert:", error);
             return null;
         }
     },
 
     fetchAlerts: async function(config) {
+        this.debugLog("Starting fetchAlerts with config:", config);
+
         try {
             if (config.useDummyData) {
-                const dummyAlert = this.generateDummyAlert(config);
-                console.log("Generated dummy alert:", dummyAlert);
-                this.sendSocketNotification("ALERTS_DATA", dummyAlert ? [dummyAlert] : []);
+                this.debugLog("Dummy data mode enabled, attempting test API first");
+
+                // Try test API
+                const params = new URLSearchParams({ format: "json" });
+                if (config.geoCode) {
+                    params.append("geoCode", config.geoCode);
+                }
+
+                const testApiResponse = await this.makeApiRequest(
+                    this.apiConfig.test.url,
+                    params,
+                    {
+                        'Accept': 'application/json',
+                        'User-Agent': this.apiConfig.test.userAgent
+                    }
+                );
+
+                if (testApiResponse.success) {
+                    let alerts = [];
+                    if (testApiResponse.data.alerts) {
+                        alerts = testApiResponse.data.alerts;
+                    } else if (Array.isArray(testApiResponse.data)) {
+                        alerts = testApiResponse.data;
+                    }
+
+                    this.debugLog("Test API alerts processed:", {
+                        alertCount: alerts.length,
+                        alerts: alerts
+                    });
+
+                    if (alerts.length > 0) {
+                        this.debugLog("Sending test API alerts to module");
+                        this.sendSocketNotification("ALERTS_DATA", alerts);
+                        return;
+                    } else {
+                        this.debugLog("No alerts from test API, falling back to local dummy data");
+                    }
+                }
+
+                // Test API failed or returned no alerts, use fallback
+                this.debugLog("Using local fallback system");
+                const dummyAlert = this.generateLocalDummyAlert(config);
+                
+                if (dummyAlert) {
+                    this.debugLog("Generated local fallback alert:", dummyAlert);
+                    this.sendSocketNotification("ALERTS_DATA", [dummyAlert]);
+                } else {
+                    this.debugLog("Failed to generate fallback alert");
+                    this.sendSocketNotification("ALERTS_DATA", []);
+                }
                 return;
             }
 
-            // Construct API URL with correct parameters
-            const apiUrl = "https://vmaapi.sr.se/api/v2/alerts";
-            const params = new URLSearchParams({
-                format: "json"  // Required parameter
-            });
-
-            // Add GeoCode filter if configured
+            // Production API request
+            const params = new URLSearchParams({ format: "json" });
             if (config.geoCode) {
                 params.append("geoCode", config.geoCode);
-                console.log(`Filtering alerts for GeoCode: ${config.geoCode}`);
+                this.debugLog(`Filtering alerts for GeoCode: ${config.geoCode}`);
             }
 
-            console.log(`Fetching alerts from: ${apiUrl}?${params.toString()}`);
-
-            // Make API request with proper headers
-            const response = await axios.get(`${apiUrl}?${params.toString()}`, {
-                timeout: 10000,  // 10 second timeout
-                headers: {
+            const apiResponse = await this.makeApiRequest(
+                this.apiConfig.production.url,
+                params,
+                {
                     'Accept': 'application/json',
-                    'User-Agent': 'MagicMirror-SRVMA/2.1.3'
+                    'User-Agent': this.apiConfig.production.userAgent
                 }
-            });
+            );
 
-            // Process response
-            if (response.data) {
-                console.log("API response received:", {
-                    status: response.status,
-                    alertCount: response.data.alerts ? response.data.alerts.length : 0
-                });
-
+            if (apiResponse.success) {
                 let alerts = [];
                 
-                // Handle different response structures
-                if (response.data.alerts) {
-                    alerts = response.data.alerts;
-                } else if (Array.isArray(response.data)) {
-                    alerts = response.data;
+                if (apiResponse.data.alerts) {
+                    alerts = apiResponse.data.alerts;
+                } else if (Array.isArray(apiResponse.data)) {
+                    alerts = apiResponse.data;
                 }
 
-                // Filter alerts if age threshold is set
                 if (config.alertAgeThreshold && alerts.length > 0) {
                     const now = new Date().getTime();
                     alerts = alerts.filter(alert => {
@@ -180,25 +263,18 @@ module.exports = NodeHelper.create({
                     });
                 }
 
-                console.log(`Sending ${alerts.length} alerts to module`);
+                this.debugLog(`Sending ${alerts.length} production alerts to module`);
                 this.sendSocketNotification("ALERTS_DATA", alerts);
-
             } else {
-                console.log("No alerts found in API response");
+                this.debugLog("Failed to fetch production alerts:", apiResponse.message);
                 this.sendSocketNotification("ALERTS_DATA", []);
             }
 
         } catch (error) {
-            console.error("Error fetching VMA data:", {
+            this.debugLog("Critical error in fetchAlerts:", {
                 message: error.message,
-                status: error.response?.status,
-                statusText: error.response?.statusText
+                stack: error.stack
             });
-            
-            // Log detailed error information if available
-            if (error.response?.data) {
-                console.error("API Error Response:", error.response.data);
-            }
             
             this.sendSocketNotification("ALERTS_DATA", []);
         }

@@ -11,7 +11,7 @@ A MagicMirror² module for displaying VMA (Viktigt Meddelande till Allmänheten 
 ![SRVMA Standard View](SRVMA.png)
 
 ### Top Bar View
-![VMA Top Bar View](VMA top bar.png)
+![VMA Top Bar View](VMA_top_bar.png)
 
 
 ## What's New in v2.2.0

@@ -1,206 +1,270 @@
 # MMM-SRVMA - VMA Alerts for MagicMirror²
-Version 2.1.3
+Version 2.2.0
 
 A MagicMirror² module for displaying VMA (Viktigt Meddelande till Allmänheten - Important Public Announcements) from Swedish authorities through Sveriges Radio's API. This module shows critical public safety information, weather warnings, and other important alerts in Sweden.
 
 ⚠️ **IMPORTANT**: This module only works within Sweden as it uses the Swedish VMA system. The API only provides alerts for Swedish territories and municipalities.
 
-![MMM-SRVMA Screenshot](SRVMA.png)
+## Screenshots
 
-## API Information
-This module uses the official VMA API service provided by Sveriges Radio AB. The VMA system is owned and operated by Sveriges Radio AB on behalf of Swedish authorities.
+### Standard View
+![SRVMA Standard View](SRVMA.png)
 
-For more information about the VMA service:
-- [VMA API Documentation](https://vmaapi.sr.se/index.html)
-- [VMA API Release Notes](https://vmaapi.sr.se/releasenotes)
-- [Sveriges Radio VMA Information](https://sverigesradio.se/artikel/vma-viktigt-meddelande-till-allmanheten)
-- [GeoCodes Reference](https://vmaapi.sr.se/api/v2/area/sweden) (List of valid Swedish location codes)
+### Top Bar View
+![VMA Top Bar View](VMA top bar.png)
 
-## What's New in v2.1.3
-- Added support for English translations
-- Improved positioning options with full-width banner support
-- Enhanced error handling and loading states
-- Added test mode for easy setup verification
 
-## Before You Begin
-You'll need to edit the MagicMirror² configuration file located at:
+## What's New in v2.2.0
+- Enhanced English translation support with improved language selection
+- Improved error handling and alert processing
+- Fixed language fallback behavior
+- Better date localization for both Swedish and English
+- More robust API response handling
+
+## Before Installation
+
+### System Requirements
+- MagicMirror² version 2.15.0 or newer
+- Node.js version 18 or newer
+- npm version 6 or newer
+- Active internet connection
+- Location within Sweden (API requirement)
+
+### Important Files
+- Configuration: `~/MagicMirror/config/config.js`
+- Module location: `~/MagicMirror/modules/MMM-SRVMA/`
+
+💡 **TIP**: Always backup your config.js before making changes:
 ```bash
-~/MagicMirror/config/config.js
+cp ~/MagicMirror/config/config.js ~/MagicMirror/config/config.js.backup
 ```
 
-💡 TIP: If you're new to MagicMirror², this file contains all your module settings. Make sure to back it up before making changes!
+## Installation
 
-## Installation Steps
-
-1. Open a terminal window (or Command Prompt in Windows)
-
-2. Navigate to your MagicMirror's modules folder:
+1. Navigate to your MagicMirror's modules folder:
 ```bash
 cd ~/MagicMirror/modules
 ```
 
-3. Clone this repository:
+2. Clone this repository:
 ```bash
-git clone https://github.com/cgillinger/MMM-SRVMA
+git clone https://github.com/cgillinger/MMM-SRVMA.git
 ```
 
-4. Install dependencies:
+3. Install dependencies:
 ```bash
 cd MMM-SRVMA
 npm install
 ```
 
+4. Add the module configuration to your `config.js` file (see Configuration section)
+
 ## Configuration Guide
 
-### Step 1: Choose Your Position
-The module can be displayed in two different ways:
+### Display Options
+
+Choose between two display modes:
 
 1. **Full-Width Banner** (`position: "top_bar"`)
-   - Spans the entire width of your screen
-   - Perfect for important announcements
+   - Spans entire screen width
+   - Best for critical alerts
    - Automatically centers content
    
 2. **Regular Card** (any other position)
    - Fixed width display
-   - Fits neatly in any corner
-   - Maintains compact appearance
+   - Fits in corners
+   - More subtle presence
 
-### Step 2: Edit Your Configuration
-Open your `config/config.js` file and add one of these configurations:
+### Basic Configuration
 
-#### For Full-Width Banner:
+#### Full-Width Banner Example:
 ```javascript
 {
     module: "MMM-SRVMA",
-    position: "top_bar",    // This creates the full-width banner
+    position: "top_bar",
     config: {
-        updateInterval: 60000,        // How often to check for new alerts (in milliseconds)
-        showIcons: true,             // Show weather icons when applicable
-        animateIn: true,             // Smooth fade-in animation
-        geoCode: "12",               // Your location code (e.g., "12" for Stockholm County)
-        preferredLanguage: "sv-SE",   // "sv-SE" for Swedish, "en-US" for English
-        showBothLanguages: false      // Set to true to show both languages
+        preferredLanguage: "en-US",     // English display
+        showBothLanguages: true,        // Show Swedish and English
+        updateInterval: 60000,          // Check every minute
+        showIcons: true,                // Show weather icons
+        animateIn: true                 // Smooth transitions
     }
 }
 ```
 
-#### For Regular Card Display:
+#### Regular Card Example:
 ```javascript
 {
     module: "MMM-SRVMA",
-    position: "top_right",   // Can be top_left, bottom_right, etc.
+    position: "top_right",
     config: {
-        width: "400px",      // Width of the module (ignored in top_bar position)
-        maxHeight: "300px",  // Maximum height
-        updateInterval: 60000,
-        showIcons: true,
-        animateIn: true,
-        geoCode: "12",
-        preferredLanguage: "sv-SE",
-        showBothLanguages: false
+        width: "400px",
+        maxHeight: "300px",
+        preferredLanguage: "sv-SE",    // Swedish display
+        showBothLanguages: false,      // Swedish only
+        updateInterval: 60000
     }
 }
 ```
 
-### Step 3: Choose Your Location
-Find your location code (Swedish locations only):
-- Two digits for counties (län)
-- Four digits for municipalities (kommuner)
+### Language Configuration
 
-Common codes:
-- "12" = Stockholm County
-- "1280" = Stockholm Municipality
-- "14" = Gothenburg County
-- "1480" = Gothenburg Municipality
+Three language options available:
 
-Add your code to the config:
+1. **Swedish Only** (default):
 ```javascript
-config: {
-    geoCode: "12",    // Replace with your location code
-    // ... other settings
-}
-```
-
-### Step 4: Choose Your Language
-Pick one:
-```javascript
-// For Swedish only:
 config: {
     preferredLanguage: "sv-SE",
     showBothLanguages: false
 }
+```
 
-// For English only:
+2. **English Only**:
+```javascript
 config: {
     preferredLanguage: "en-US",
     showBothLanguages: false
 }
-
-// For both languages:
-config: {
-    preferredLanguage: "sv-SE",  // Primary language
-    showBothLanguages: true      // Shows both when available
-}
 ```
 
-## Testing Your Setup
-
-Before connecting to live data, you can test the module:
-
-1. Add this test configuration:
+3. **Both Languages** (when available):
 ```javascript
-{
-    module: "MMM-SRVMA",
-    position: "top_right",  // Try both top_bar and other positions
-    config: {
-        useDummyData: true,        // Enables test mode
-        dummySeverity: "Severe",   // Try: "Severe", "Moderate", or "Minor"
-        dummyUrgency: "Immediate", // Try: "Immediate", "Expected", or "Future"
-        preferredLanguage: "en-US" // Test your language preference
-    }
+config: {
+    preferredLanguage: "sv-SE",    // Primary language
+    showBothLanguages: true        // Show translation if available
 }
 ```
 
-2. Restart your MagicMirror
-3. You should see a test alert appear
+### Location Filtering (Geocodes)
+
+VMA alerts can be filtered by location using Swedish geocodes. There are three ways to find your geocode:
+
+#### Method 1: Direct API Query
+```bash
+curl "https://vmaapi.sr.se/api/v2/area/sweden"
+```
+This returns a complete list of valid geocodes.
+
+#### Method 2: Using SCB's Website
+1. Visit [SCB's Regional Codes](https://www.scb.se/hitta-statistik/regional-statistik-och-kartor/regionala-indelningar/lan-och-kommuner/)
+2. Look up your location:
+   - County codes: First 2 digits
+   - Municipality codes: All 4 digits
+
+#### Method 3: Common Codes Reference
+Common county (län) codes:
+```
+12 = Stockholm
+14 = Västra Götaland
+24 = Västerbotten
+21 = Gävleborg
+22 = Västernorrland
+25 = Norrbotten
+```
+
+Common municipality codes:
+```
+1280 = Stockholm City
+1480 = Göteborg
+2482 = Skellefteå
+2580 = Luleå
+```
+
+To set your location in the config:
+```javascript
+config: {
+    geoCode: "12",    // For Stockholm County
+    // ... other settings
+}
+```
+
+For nationwide alerts:
+```javascript
+config: {
+    geoCode: null,    // No location filter
+    // ... other settings
+}
+```
+
+💡 **TIP**: If you're not seeing any alerts, try removing the geocode filter temporarily to verify if there are any active alerts in other regions.
 
 ## Troubleshooting
 
-If the module doesn't appear:
-1. Check your `config.js` file for proper formatting (commas, brackets)
-2. Look for errors in the MagicMirror console (F12 in most browsers)
-3. Verify that the module folder name is exactly `MMM-SRVMA`
-4. Ensure you're within Swedish territories (API limitation)
+### Common Issues and Solutions
+
+#### Module Not Appearing
+1. Check your config.js for syntax errors:
+   - Look for missing commas
+   - Verify bracket closure
+   - Ensure proper indentation
+2. Verify module installation:
+   ```bash
+   ls ~/MagicMirror/modules/MMM-SRVMA
+   ```
+3. Check MagicMirror logs:
+   - Press F12 in browser
+   - Look for errors in console
+
+#### No Alerts Showing
+1. Verify your geocode:
+   ```bash
+   # Test API with your geocode
+   curl "https://vmaapi.sr.se/api/v2/alerts?format=json&geoCode=YOUR_CODE"
+   
+   # Test without geocode to see all alerts
+   curl "https://vmaapi.sr.se/api/v2/alerts?format=json"
+   ```
+2. Check language settings:
+   - Ensure preferredLanguage is either "sv-SE" or "en-US"
+   - Try enabling showBothLanguages
+3. Verify internet connectivity
+
+#### Language Issues
+1. If English translation not showing:
+   - Verify alert has English version available
+   - Check preferredLanguage spelling
+   - Enable showBothLanguages temporarily
+
+### Debug Mode
+Add debug logging by modifying config:
+```javascript
+config: {
+    debug: true,     // Enable detailed logging
+    // ... other settings
+}
+```
 
 ## All Configuration Options
 
-| Option | What It Does | Default | Valid Options |
-|--------|-------------|---------|---------------|
-| `position` | Where to display the module | "top_right" | "top_bar" or any MM position |
-| `width` | Module width (ignored in top_bar) | "400px" | Any CSS width |
+| Option | Purpose | Default | Valid Options |
+|--------|---------|---------|---------------|
+| `position` | Display location | "top_right" | "top_bar" or any MM position |
+| `width` | Module width | "400px" | Any CSS width |
 | `maxHeight` | Maximum height | "300px" | Any CSS height |
 | `preferredLanguage` | Primary language | "sv-SE" | "sv-SE", "en-US" |
-| `showBothLanguages` | Show dual languages | false | true, false |
+| `showBothLanguages` | Show translations | false | true, false |
 | `geoCode` | Location filter | null | County/Municipality code |
-| `showIcons` | Display alert icons | true | true, false |
-| `animateIn` | Enable animations | true | true, false |
-| `updateInterval` | Update frequency (ms) | 60000 | Any number |
-| `alertAgeThreshold` | Max alert age (ms) | 3600000 | Any number |
-| `useDummyData` | Test mode | false | true, false |
-| `dummySeverity` | Test alert severity | "Severe" | "Severe", "Moderate", "Minor" |
-| `dummyUrgency` | Test alert urgency | "Immediate" | "Immediate", "Expected", "Future" |
+| `showIcons` | Weather icons | true | true, false |
+| `animateIn` | Animations | true | true, false |
+| `updateInterval` | Update frequency | 60000 | Milliseconds |
+| `alertAgeThreshold` | Alert expiry | 3600000 | Milliseconds |
+| `debug` | Debug logging | false | true, false |
 
 ## Support & Updates
 
-- For help: Open an issue on GitHub
-- For updates: Watch the repository or check version numbers
-- Current stable version: 2.1.3
-- Geographic coverage: Sweden only
+- GitHub Issues: [Report Problems](https://github.com/cgillinger/MMM-SRVMA/issues)
+- Version Check: [Releases](https://github.com/cgillinger/MMM-SRVMA/releases)
+- Current Version: 2.2.0
+- Coverage: Sweden only
 
 ## Attribution & License
-- Module created by Christian Gillinger
-- Uses Sveriges Radio's VMA API service (Swedish territories only)
-- Version 2.1.3 released December 2024
-- MIT License - see LICENSE file for details
+- Created by Christian Gillinger
+- Uses Sveriges Radio's VMA API
+- MIT License - see LICENSE file
+- Updated: December 2024
 
-Need more help? Open an issue on GitHub or check the MagicMirror forums!
+## API Information
+- [VMA API Documentation](https://vmaapi.sr.se/index.html)
+- [VMA API Release Notes](https://vmaapi.sr.se/releasenotes)
+- [Sveriges Radio VMA Info](https://sverigesradio.se/artikel/vma-viktigt-meddelande-till-allmanheten)
+- [Location Codes API](https://vmaapi.sr.se/api/v2/area/sweden)

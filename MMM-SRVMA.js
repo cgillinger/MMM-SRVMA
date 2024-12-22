@@ -1,29 +1,32 @@
-/* MagicMirror² Module: MMM-SRVMA 
- * Version: 2.1.3
- * A module to display Swedish VMA (Important Public Announcements) with support for location filtering
- * and English translations.
+/* MMM-SRVMA.js
+ * Version: 2.2.0
+ * A MagicMirror² module for displaying Swedish VMA (Important Public Announcements)
+ * 
+ * By Christian Gillinger
+ * MIT Licensed
+ * 
+ * Changes in 2.2.0:
+ * - Added proper support for English translations
+ * - Fixed language selection and fallback logic
+ * - Improved date formatting and localization
+ * - Enhanced alert content processing
  */
 
 Module.register("MMM-SRVMA", {
-    // Default module config
     defaults: {
-        useDummyData: false,        // Enable for testing without API
-        showInitialMessage: true,   // Whether to show the initial "no alerts" message
-        initialMessageDuration: 60000, // Default duration to show initial message (1 minute)
-        dummySeverity: "Severe",    // Used for test data: Severe, Moderate, Minor
-        dummyUrgency: "Immediate",  // Used for test data: Immediate, Expected, Future
-        updateInterval: 60000,      // Update frequency in milliseconds (1 minute)
-        alertAgeThreshold: 3600000, // Show alerts from the last hour (1 hour in ms)
+        updateInterval: 60000,      // How often to check for new alerts (1 minute)
+        alertAgeThreshold: 3600000, // Show alerts from last hour (1 hour)
         maxHeight: "300px",         // Maximum height of the module
-        width: "400px",            // Width of the module
+        width: "400px",            // Width of the module (ignored in top_bar)
         showIcons: true,           // Show weather icons for relevant alerts
         animateIn: true,           // Enable fade-in animation
-        preferredLanguage: "sv-SE", // Default language (sv-SE or en-US)
-        showBothLanguages: false,   // Option to show both language versions
-        geoCode: null,             // GeoCode for location filtering (e.g., "12" for Stockholm County)
+        preferredLanguage: "sv-SE", // Primary language (sv-SE or en-US)
+        showBothLanguages: false,   // Show both languages when available
+        geoCode: null,             // Location filter (e.g., "12" for Stockholm)
+        showInitialMessage: true    // Show "no alerts" message on startup
     },
 
-    // Required styles
+    // Required styles in load order
     getStyles: function() {
         return [
             "MMM-SRVMA.css",
@@ -36,30 +39,25 @@ Module.register("MMM-SRVMA", {
     // Module initialization
     start: function() {
         Log.info("Starting module: " + this.name);
+        
         this.alerts = [];
         this.loaded = false;
         this.initialLoad = this.config.showInitialMessage;
         
-        // Log configuration on startup
-        if (this.config.geoCode) {
-            Log.info(`VMA: GeoCode configured: ${this.config.geoCode}`);
-        }
-        
         this.getData();
         this.scheduleUpdate();
 
-        // Only set up the timer if showing initial message is enabled
+        // Set up initial message timer if enabled
         if (this.config.showInitialMessage) {
             setTimeout(() => {
                 this.initialLoad = false;
                 this.updateDom();
-            }, this.config.initialMessageDuration);
+            }, 60000);  // Show for 1 minute
         }
     },
 
-    // Fetch data from node_helper
+    // Request data from node_helper
     getData: function() {
-        Log.debug("VMA: Requesting alerts data");
         this.sendSocketNotification("FETCH_ALERTS", {
             ...this.config,
             timestamp: new Date().toISOString()
@@ -73,33 +71,45 @@ Module.register("MMM-SRVMA", {
         }, this.config.updateInterval);
     },
 
-    // Process alerts data
+    // Process alerts data with language handling
     processAlerts: function(alerts) {
-        return alerts.map(alert => {
-            if (!alert.info || alert.info.length === 0) return null;
+        if (!Array.isArray(alerts)) {
+            Log.error("Invalid alerts data received");
+            return [];
+        }
 
-            // Find preferred language version
+        return alerts.filter(alert => {
+            if (!alert.info || !Array.isArray(alert.info) || alert.info.length === 0) {
+                return false;
+            }
+
+            // Find primary and English versions
             const preferredInfo = alert.info.find(info => 
-                info.language === this.config.preferredLanguage) || alert.info[0];
+                info.language === this.config.preferredLanguage);
+            const englishInfo = alert.info.find(info => 
+                info.language === "en-US");
 
-            // Find English version if showing both languages
-            const englishInfo = this.config.showBothLanguages ? 
-                alert.info.find(info => info.language === "en-US") : null;
+            // Set primary display language
+            if (this.config.preferredLanguage === "en-US") {
+                alert.processedInfo = englishInfo || alert.info[0];
+            } else {
+                alert.processedInfo = preferredInfo || alert.info[0];
+            }
 
-            return {
-                ...alert,
-                processedInfo: preferredInfo,
-                englishInfo: englishInfo
-            };
-        }).filter(alert => alert !== null);
+            // Store English version if showing both languages
+            if (this.config.showBothLanguages && englishInfo) {
+                alert.englishInfo = englishInfo;
+            }
+
+            return true;
+        });
     },
 
-    // Create the module's DOM representation
+    // Create DOM representation
     getDom: function() {
         const wrapper = document.createElement("div");
         wrapper.className = `mmm-srvma-wrapper ${this.config.animateIn ? 'fade-in' : ''}`;
         
-        // Only set inline width if not in top_bar position
         if (this.data.position !== "top_bar") {
             wrapper.style.width = this.config.width;
             wrapper.style.maxHeight = this.config.maxHeight;
@@ -114,20 +124,10 @@ Module.register("MMM-SRVMA", {
             return wrapper;
         }
 
-        // Handle invalid data
-        if (!Array.isArray(this.alerts)) {
-            console.error("VMA: Invalid alerts data received:", this.alerts);
-            const errorDiv = document.createElement("div");
-            errorDiv.innerHTML = "Error loading alerts";
-            errorDiv.className = "dimmed light small error";
-            wrapper.appendChild(errorDiv);
-            return wrapper;
-        }
-
-        // Handle no alerts
-        if (this.alerts.length === 0) {
-            const noAlertsDiv = document.createElement("div");
+        // Handle no alerts state
+        if (!this.alerts.length) {
             if (this.initialLoad) {
+                const noAlertsDiv = document.createElement("div");
                 noAlertsDiv.innerHTML = this.config.preferredLanguage === "sv-SE" ? 
                     "Inga aktuella VMA" : "No current alerts";
                 noAlertsDiv.className = "dimmed light small no-alerts";
@@ -138,11 +138,10 @@ Module.register("MMM-SRVMA", {
             return wrapper;
         }
 
-        // Create alerts container
+        // Create and populate alerts container
         const alertContainer = document.createElement("div");
         alertContainer.className = "alert-container";
 
-        // Process and add alerts
         this.processAlerts(this.alerts).forEach(alert => {
             const alertDiv = this.createAlertElement(alert);
             if (alertDiv) alertContainer.appendChild(alertDiv);
@@ -158,33 +157,28 @@ Module.register("MMM-SRVMA", {
 
         const alertDiv = document.createElement("div");
         const info = alert.processedInfo;
-        const severityClass = `alert-${info.severity.toLowerCase()}`;
-        const urgencyClass = this.getUrgencyClass(info.urgency);
         
-        alertDiv.className = `alert ${severityClass} ${urgencyClass}`;
+        alertDiv.className = `alert alert-${info.severity.toLowerCase()} ${this.getUrgencyClass(info.urgency)}`;
 
-        // Add icon if configured
+        // Add weather icon if configured
         if (this.config.showIcons) {
             const iconDiv = document.createElement("div");
             iconDiv.className = "alert-icon";
-            const iconClass = this.getAlertIcon(alert);
-            iconDiv.innerHTML = `<i class="${iconClass}"></i>`;
+            iconDiv.innerHTML = `<i class="${this.getAlertIcon(alert)}"></i>`;
             alertDiv.appendChild(iconDiv);
         }
 
-        // Add content container
+        // Create content container
         const contentDiv = document.createElement("div");
         contentDiv.className = "alert-content";
 
         // Add primary language content
-        this.addAlertContent(contentDiv, info, alert);
+        this.addAlertContent(contentDiv, info, alert.sent, false);
 
-        // Add English translation if configured
+        // Add English translation if configured and available
         if (this.config.showBothLanguages && alert.englishInfo) {
-            const divider = document.createElement("hr");
-            divider.className = "alert-divider";
-            contentDiv.appendChild(divider);
-            this.addAlertContent(contentDiv, alert.englishInfo, alert);
+            contentDiv.appendChild(document.createElement("hr")).className = "alert-divider";
+            this.addAlertContent(contentDiv, alert.englishInfo, alert.sent, true);
         }
 
         alertDiv.appendChild(contentDiv);
@@ -192,26 +186,32 @@ Module.register("MMM-SRVMA", {
     },
 
     // Add content to alert element
-    addAlertContent: function(container, info, alert) {
+    addAlertContent: function(container, info, sentTime, isTranslation) {
+        const contentWrapper = document.createElement("div");
+        contentWrapper.className = isTranslation ? "alert-translation" : "alert-primary";
+
         // Add title
         const title = document.createElement("div");
         title.className = "alert-title";
         title.textContent = info.event;
-        container.appendChild(title);
+        contentWrapper.appendChild(title);
 
         // Add description
         const description = document.createElement("div");
         description.className = "alert-description";
         description.textContent = info.description;
-        container.appendChild(description);
+        contentWrapper.appendChild(description);
 
-        // Add metadata
+        // Add metadata with localized date
         const metadata = document.createElement("div");
         metadata.className = "alert-metadata";
-        metadata.textContent = `${info.senderName} - ${new Date(alert.sent).toLocaleString(
-            info.language === "sv-SE" ? "sv-SE" : "en-US"
+        metadata.textContent = `${info.senderName} - ${new Date(sentTime).toLocaleString(
+            info.language === "sv-SE" ? "sv-SE" : "en-US",
+            { dateStyle: "medium", timeStyle: "short" }
         )}`;
-        container.appendChild(metadata);
+        contentWrapper.appendChild(metadata);
+
+        container.appendChild(contentWrapper);
     },
 
     // Get appropriate icon for alert type
@@ -221,13 +221,13 @@ Module.register("MMM-SRVMA", {
                 fire: "wi-fire",
                 storm: "wi-thunderstorm",
                 flood: "wi-flood",
-                default: "fa-exclamation-triangle"
+                default: "fa fa-exclamation-triangle"
             },
             Moderate: {
-                default: "fa-exclamation-circle"
+                default: "fa fa-exclamation-circle"
             },
             Minor: {
-                default: "fa-info-circle"
+                default: "fa fa-info-circle"
             }
         };
 
@@ -252,7 +252,6 @@ Module.register("MMM-SRVMA", {
     // Handle socket notifications from node_helper
     socketNotificationReceived: function(notification, payload) {
         if (notification === "ALERTS_DATA") {
-            Log.debug("VMA: Received alerts data:", payload);
             this.alerts = Array.isArray(payload) ? payload : [];
             this.loaded = true;
             this.updateDom();
